@@ -1,7 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const firebase = require("firebase/app");
+require('firebase/auth')
 const userModel = require("../models/user");
+
+const { GoogleAuthProvider } = require("firebase/auth");
+const { getAuth , signInWithPopup, signOut} = require('firebase/auth')
+const { initializeApp } = require('firebase/app')
+
 
 // Initialize the Firebase Client SDK
 const firebaseConfig = {
@@ -13,27 +19,29 @@ const firebaseConfig = {
   appId: "1:672945645079:web:d10335a8719b9d0346de52",
   measurementId: "G-2BQCBRQYQQ"
 };
-firebase.initializeApp(firebaseConfig);
 
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
 
 
 // Define the Google authentication route
-router.get("/signup", (req, res, next) => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
+router.get("/login", (req, res, next) => {
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
     .then((result) => {
       const idToken = result.credential.accessToken;
       const user = result.user;
 
-      userModel.findOneAndUpdate({ uid: user.uid }, { $set: user }, { upsert: true })
+      userModel.findOneAndUpdate({ uid: user.uid }, { $set: user, $set: idToken }, { upsert: true })
       .then(() => {
-        res.redirect("/dashboard");
+        res.redirect("/api/dashboard");
       })
       .catch((error) => {
         console.error(error);
         res.redirect("/");
       });
-      res.redirect("/dashboard");
+      res.redirect("/api/dashboard");
     })
     .catch((error) => {
       console.error(error);
@@ -43,7 +51,7 @@ router.get("/signup", (req, res, next) => {
 
 // Define the logout route
 router.get("/logout", (req, res, next) => {
-  firebase.auth().signOut()
+  signOut(auth)
     .then(() => {
       res.redirect("/");
     })

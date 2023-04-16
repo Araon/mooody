@@ -19,16 +19,22 @@ const usersRoutes = require("./routes/users");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+PORT = process.env.PORT || 3001;
+
 // setup / route to serve index page
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("Hello World");
 });
 
 // use auth routes
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+app.use("/api/todos", todoRoutes);
+
+app.use("/api/users", usersRoutes);
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;
