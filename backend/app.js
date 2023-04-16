@@ -1,32 +1,34 @@
-// basic todo app using express
-
-import express from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import mongoose from 'mongoose';
-
+const express = require("express");
 const app = express();
+const admin = require("firebase-admin");
+const firebase = require("firebase/app");
 
-// middleware
-app.use(bodyParser.json());
-app.use(cors());
+const serviceAccount = require("./config/serviceAccountKey.json");
 
-// connect to mongodb
-mongoose.connect('mongodb://localhost:27017/todos', { useNewUrlParser: true });
-mongoose.connection.once('open', () => {
-    console.log('connected to database');
-    }
-);
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://mooody-1.firebaseio.com",
+});
 
-// import routes
-import todoRoutes from './routes/todos';
+const todoModel = require("./models/todos");
+const authRoutes = require("./routes/auth");
+const todoRoutes = require("./routes/todo");
+const usersRoutes = require("./routes/users");
 
-// routes
-app.use('/todos', todoRoutes);
+//middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// listen for requests
-app.listen(4000, () => {
-    console.log('now listening for requests');
-    }
-);
+// setup / route to serve index page
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
+// use auth routes
+app.use("/auth", authRoutes);
+
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});
+
+module.exports = app;
