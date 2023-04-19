@@ -1,64 +1,82 @@
 const express = require("express");
 const router = express.Router();
-const firebase = require("firebase/app");
-require('firebase/auth')
-const userModel = require("../models/user");
+const passport = require("passport");
+const isLoggedIn = require("../middleware/auth");
+const GoogleStrategy = require("passport-google-oauth2").Strategy;
 
-const { GoogleAuthProvider } = require("firebase/auth");
-const { getAuth , signInWithPopup, signOut} = require('firebase/auth')
-const { initializeApp } = require('firebase/app')
+const { userModel } = require("../models/todos");
+
+router.use(passport.initialize());
+router.use(passport.session());
 
 
-// Initialize the Firebase Client SDK
-const firebaseConfig = {
-  apiKey: "AIzaSyD4P8RoxpMGJpPU6JVxjGXF2qr_us4AdOg",
-  authDomain: "moody-araon.firebaseapp.com",
-  projectId: "moody-araon",
-  storageBucket: "moody-araon.appspot.com",
-  messagingSenderId: "672945645079",
-  appId: "1:672945645079:web:d10335a8719b9d0346de52",
-  measurementId: "G-2BQCBRQYQQ"
-};
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:3001/google/callback",
+      passReqToCallback: true,
+    },
+    async function (request, accessToken, refreshToken, profile, done) {
+      try {
+        let user = await userModel.findOne({ uid: profile.id });
+        if (!user) {
+          user = new userModel({
+            uid: profile.id, 
+            name: profile.displayName,
+            email: profile.email,
+            profilePicture: profile.picture,
+          });
+          await user.save();
+        }
+        return done(null, profile);
+      } catch (err) {
+        return done(err);
+      }
+    }
+  )
+);
 
-const app = initializeApp(firebaseConfig);
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
 
-const auth = getAuth(app);
-
+passport.deserializeUser(function (user, done) {
+  done(null, user);
+});
 
 // Define the Google authentication route
 router.get("/login", (req, res, next) => {
-  const provider = new GoogleAuthProvider();
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const idToken = result.credential.accessToken;
-      const user = result.user;
-
-      userModel.findOneAndUpdate({ uid: user.uid }, { $set: user, $set: idToken }, { upsert: true })
-      .then(() => {
-        res.redirect("/api/dashboard");
-      })
-      .catch((error) => {
-        console.error(error);
-        res.redirect("/");
-      });
-      res.redirect("/api/dashboard");
-    })
-    .catch((error) => {
-      console.error(error);
-      res.redirect("/");
-    });
+  res.send('<a href="/google">Login with Google</a>');
 });
 
-// Define the logout route
-router.get("/logout", (req, res, next) => {
-  signOut(auth)
-    .then(() => {
-      res.redirect("/");
-    })
-    .catch((error) => {
-      console.error(error);
-      res.redirect("/");
-    });
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    successRedirect: "/profile",
+    failureRedirect: "/login",
+  })
+);
+
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get("/profile", isLoggedIn, (req, res, next) => {
+  res.send(`<h1>Hello ${req.user.displayName}</h1>
+  <img src="${req.user.picture}"/>
+  <a href="/logout">Logout</a>`);
+});
+
+router.get("/logout", function (req, res, next) {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/login");
+  });
 });
 
 module.exports = router;

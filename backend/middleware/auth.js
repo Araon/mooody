@@ -1,14 +1,8 @@
-const admin = require("firebase-admin");
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized" });
+}
 
-module.exports = (req, res, next) => {
-  const idToken = req.headers.authorization?.split("Bearer ")[1];
-  admin.auth().verifyIdToken(idToken)
-    .then((decodedToken) => {
-      req.user = decodedToken;
-      next();
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(401).json({ error: "Unauthorized" });
-    });
-};
+module.exports = isLoggedIn;

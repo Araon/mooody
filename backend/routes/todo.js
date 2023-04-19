@@ -1,12 +1,23 @@
 const express = require("express");
 const router = express.Router();
 
-const todoModel = require("../models/todos");
-const authMiddleware = require("../middleware/auth");
+const { tododb, userModel } = require("../models/todos");
+const isLoggedIn = require("../middleware/auth");
+
+
+//gettin all todos
+router.get("/todo", isLoggedIn, async (req, res) => {
+  try {
+    const todos = await todoModel.find({ uid: req.user.uid});
+    res.send(todos);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 
 //creating a new todo
-
-router.post("/todo", authMiddleware, async (req, res) => {
+router.post("/todo", isLoggedIn, async (req, res) => {
   try {
     const todo = new todo({
       name: req.body.name,
@@ -31,14 +42,6 @@ router.post("/todo", authMiddleware, async (req, res) => {
   }
 });
 
-//gettin all todos
-router.get("/todo", authMiddleware , async (req, res) => {
-  try {
-    const todos = await todoModel.find();
-    res.send(todos);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-});
+
 
 module.exports = router;

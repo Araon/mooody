@@ -65,4 +65,26 @@ const todoSchema = new mongoose.Schema({
 
 const tododb = mongoose.model("todos", todoSchema);
 
-module.exports = tododb;
+const userSchema = new mongoose.Schema({
+  uid: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  photoUrl: {
+    type: String
+  }
+});
+
+const userModel = mongoose.model('User', userSchema);
+
+module.exports = {tododb, userModel};

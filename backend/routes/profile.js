@@ -6,7 +6,7 @@ const todoModel = require("../models/todos");
 const authMiddleware = require("../middleware/auth");
 
 // showing dashboard , show all the todos
-router.get("/dashboard", authMiddleware, async (req, res) => {
+router.get("/profile", authMiddleware, async (req, res) => {
   try {
     const todos = await todoModel.find();
     res.send(todos);
