@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 
 // use auth routes
 app.use("/", authRoutes);
-app.use("/", todoRoutes);
+app.use("/api/todo", todoRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

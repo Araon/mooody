@@ -67,6 +67,8 @@ router.get(
 router.get("/profile", isLoggedIn, (req, res, next) => {
   res.send(`<h1>Hello ${req.user.displayName}</h1>
   <img src="${req.user.picture}"/>
+  <a> Email: ${req.user.email}</a>
+  <br>
   <a href="/logout">Logout</a>`);
 });
 
