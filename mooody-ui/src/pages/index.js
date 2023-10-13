@@ -6,6 +6,6 @@ const inter = Inter({ subsets: ["latin"] });
 export default function Home() {
   return (
     // write a login form using tailwind css
-    <div className="bold bg-indigo-400">Mooody</div>
+    <div className=" bold bg-indigo-400">Mooody</div>
   );
 }

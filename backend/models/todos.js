@@ -14,6 +14,10 @@ mongoose
 
 // todoschema
 const todoSchema = new mongoose.Schema({
+  uid: {
+    type: String,
+    required: true,
+  },
   name: {
     type: String,
     required: true,
@@ -69,22 +73,22 @@ const userSchema = new mongoose.Schema({
   uid: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   name: {
     type: String,
-    required: true
+    required: true,
   },
   photoUrl: {
-    type: String
-  }
+    type: String,
+  },
 });
 
-const userModel = mongoose.model('User', userSchema);
+const userModel = mongoose.model("User", userSchema);
 
-module.exports = {tododb, userModel};
+module.exports = { tododb, userModel };
